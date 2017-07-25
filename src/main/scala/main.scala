@@ -203,10 +203,12 @@ object Wp2Prismic {
       Block.toJsonSeq(wpContent2Blocks(content, images))
 
     def author(someone: WPAuthor): JsValue =
+      JsString(someone.fullname)
+    /*
       Json.obj(
         "mask" -> "author",
         "id" -> Author.ref(someone.login)
-      )
+      )*/
 
     def categories(categories: List[WPCategory]): JsValue = {
       JsArray(categories.map { category =>
@@ -227,16 +229,14 @@ object Wp2Prismic {
         "shortlede" -> BlogPost.description(wpost.description, images),
         "image" -> BlogPost.image(wpost.image),
         "date" -> BlogPost.date(wpost.at),
-        "author" -> BlogPost.author(wpost.author),
-        "categories" -> BlogPost.categories(wpost.categories),
-        "allow_comments" -> wpost.comment
+        "author" -> BlogPost.author(wpost.author)
       )
   }
 
   def main(args: Array[String]) {
 
 //val xml = XML.loadFile("prismicio.wordpress.2015-02-03.xml")
-    val xml = XML.loadFile("wordpress.2015-02-03.xml")
+    val xml = XML.loadFile("sonarsourceblog.wordpress.2017-05-11.xml")
     val items = xml \ "channel" \\ "item"
 
     val posts = items.filter { item =>
@@ -365,8 +365,8 @@ object Wp2Prismic {
   private def wpImage2Block(el: Element, linkTo: Option[String], images: List[WPImage]): Block = {
     val image = images.find(_.url == el.getAttributeValue("src")) getOrElse {
       val alt = Option(el.getAttributeValue("alt"))
-      val width = Option(el.getAttributeValue("width")) map (_.toInt)
-      val height = Option(el.getAttributeValue("height")) map (_.toInt)
+      val width = Option(el.getAttributeValue("width")) map (_.stripSuffix("px").toInt)
+      val height = Option(el.getAttributeValue("height")) map (_.stripSuffix("px").toInt)
       val url = el.getAttributeValue("src")
       WPImage("unknown", url, width, height, None, None, alt, Seq.empty)
     }
